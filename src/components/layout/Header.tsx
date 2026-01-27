@@ -17,7 +17,7 @@ const Header = () => {
               <Plane className="h-5 w-5" />
             </div>
             <span className="font-heading text-xl font-bold text-foreground">
-              Reizen<span className="text-primary">Europa</span>
+              Go<span className="text-primary">Europa</span>
             </span>
           </Link>
 
