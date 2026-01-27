@@ -14,7 +14,7 @@ const Footer = () => {
                 <Plane className="h-5 w-5" />
               </div>
               <span className="font-heading text-xl font-bold">
-                Reizen<span className="text-primary">Europa</span>
+                Go<span className="text-primary">Europa</span>
               </span>
             </Link>
             <p className="text-sm text-muted-foreground">
@@ -73,11 +73,11 @@ const Footer = () => {
             <ul className="space-y-3">
               <li>
                 <a
-                  href="mailto:info@reizeneuropa.nl"
+                  href="mailto:info@goeuropa.nl"
                   className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
                 >
                   <Mail className="h-4 w-4" />
-                  info@reizeneuropa.nl
+                  info@goeuropa.nl
                 </a>
               </li>
               <li>
@@ -95,7 +95,7 @@ const Footer = () => {
 
         <div className="mt-12 border-t pt-6">
           <div className="flex flex-col items-center justify-between gap-4 text-sm text-muted-foreground md:flex-row">
-            <p>© 2025 ReizenEuropa. Alle rechten voorbehouden.</p>
+            <p>© 2025 GoEuropa.nl - Alle rechten voorbehouden.</p>
             <div className="flex gap-6">
               <Link to="/privacy" className="hover:text-primary">Privacybeleid</Link>
               <Link to="/voorwaarden" className="hover:text-primary">Voorwaarden</Link>
