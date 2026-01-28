@@ -31,6 +31,7 @@ const CountryMap = ({ destinations, countryName, initialCenter, initialZoom }: C
       style: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
       center: initialCenter,
       zoom: initialZoom,
+      scrollZoom: false, // Disable scroll zoom so page scrolls normally
     });
 
     // Add navigation controls
