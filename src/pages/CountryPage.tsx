@@ -1,8 +1,9 @@
 import { useParams, Link } from "react-router-dom";
-import { MapPin, ArrowRight, Loader2 } from "lucide-react";
+import { MapPin, ArrowRight, Loader2, Star } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { useDestinationsByCountry } from "@/hooks/useDestinationsByCountry";
 import { useCountriesWithDestinations } from "@/hooks/useCountriesWithDestinations";
+import { useCountryContent } from "@/hooks/useCountryContent";
 import { getCategoryById } from "@/data/categories";
 import CountryMap from "@/components/maps/CountryMap";
 import {
@@ -18,6 +19,7 @@ const CountryPage = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
   const { data: destinations = [], isLoading } = useDestinationsByCountry(countrySlug || "");
   const { data: allCountries = [] } = useCountriesWithDestinations();
+  const { data: countryContent } = useCountryContent(countrySlug || "");
   
   // Get country info from first destination or from countries list
   const countryInfo = destinations[0] 
@@ -40,6 +42,8 @@ const CountryPage = () => {
   }
   
   const countryName = countryInfo?.name || "Laden...";
+  const heroImage = countryContent?.hero_image || destinations[0]?.hero_image;
+  
   // Calculate center from destinations or use default
   const mapCenter: [number, number] = destinations.length > 0
     ? [
@@ -50,20 +54,30 @@ const CountryPage = () => {
 
   return (
     <Layout>
-      {/* Header */}
-      <section className="border-b bg-secondary/30 py-8">
-        <div className="container mx-auto px-4">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden border-b">
+        {heroImage && (
+          <div className="absolute inset-0">
+            <img
+              src={heroImage}
+              alt={countryName}
+              className="h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/30" />
+          </div>
+        )}
+        <div className={`container relative mx-auto px-4 ${heroImage ? 'py-16 md:py-24' : 'py-8'}`}>
           <Breadcrumb className="mb-4">
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link to="/">Home</Link>
+                  <Link to="/" className={heroImage ? 'text-foreground/80 hover:text-foreground' : ''}>Home</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link to="/landen">Landen</Link>
+                  <Link to="/landen" className={heroImage ? 'text-foreground/80 hover:text-foreground' : ''}>Landen</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
@@ -73,19 +87,34 @@ const CountryPage = () => {
             </BreadcrumbList>
           </Breadcrumb>
 
-          <div className="flex items-center gap-3 mb-2">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-2xl">
-              🗺️
-            </div>
-            <div>
-              <h1 className="font-heading text-2xl font-bold md:text-3xl">
-                Bestemmingen in {countryName}
-              </h1>
-              <p className="flex items-center gap-1.5 text-muted-foreground">
-                <MapPin className="h-4 w-4" />
-                {isLoading ? "Laden..." : `${destinations.length} bestemmingen`}
+          <div className="max-w-3xl">
+            <h1 className="font-heading text-3xl font-bold md:text-4xl lg:text-5xl">
+              {countryContent?.meta_title || `Bestemmingen in ${countryName}`}
+            </h1>
+            <p className="mt-2 flex items-center gap-2 text-muted-foreground">
+              <MapPin className="h-4 w-4" />
+              {isLoading ? "Laden..." : `${destinations.length} bestemmingen om te ontdekken`}
+            </p>
+            
+            {countryContent?.intro_text && (
+              <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
+                {countryContent.intro_text}
               </p>
-            </div>
+            )}
+
+            {countryContent?.highlights && countryContent.highlights.length > 0 && (
+              <div className="mt-6 flex flex-wrap gap-2">
+                {countryContent.highlights.map((highlight, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium"
+                  >
+                    <Star className="h-3.5 w-3.5 text-primary" />
+                    {highlight}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -205,6 +234,27 @@ const CountryPage = () => {
           )}
         </div>
       </section>
+
+      {/* SEO Content Section */}
+      {countryContent?.seo_content && (
+        <section className="border-t bg-secondary/20 py-12 md:py-16">
+          <div className="container mx-auto px-4">
+            <div className="prose prose-lg mx-auto max-w-4xl">
+              <div 
+                className="text-muted-foreground"
+                dangerouslySetInnerHTML={{ 
+                  __html: countryContent.seo_content
+                    .replace(/\n\n/g, '</p><p>')
+                    .replace(/^/, '<p>')
+                    .replace(/$/, '</p>')
+                    .replace(/## (.*)/g, '</p><h2 class="font-heading text-xl font-semibold text-foreground mt-8 mb-4">$1</h2><p>')
+                    .replace(/### (.*)/g, '</p><h3 class="font-heading text-lg font-semibold text-foreground mt-6 mb-3">$1</h3><p>')
+                }}
+              />
+            </div>
+          </div>
+        </section>
+      )}
     </Layout>
   );
 };

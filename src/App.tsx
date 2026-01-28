@@ -28,6 +28,8 @@ import DestinationContentPage from "./pages/admin/DestinationContentPage";
 import ContentOverviewPage from "./pages/admin/ContentOverviewPage";
 import SettingsPage from "./pages/admin/SettingsPage";
 import AdminSetupPage from "./pages/admin/AdminSetupPage";
+import CountryContentListPage from "./pages/admin/CountryContentListPage";
+import CountryContentEditPage from "./pages/admin/CountryContentEditPage";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +66,8 @@ const App = () => (
               <Route path="destinations/:id" element={<EditDestinationPage />} />
               <Route path="destinations/:id/content" element={<DestinationContentPage />} />
               <Route path="content" element={<ContentOverviewPage />} />
+              <Route path="landen" element={<CountryContentListPage />} />
+              <Route path="landen/:countrySlug" element={<CountryContentEditPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
             

@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      country_content: {
+        Row: {
+          country_name: string
+          country_slug: string
+          created_at: string
+          hero_image: string | null
+          highlights: string[] | null
+          id: string
+          intro_text: string | null
+          meta_description: string | null
+          meta_title: string | null
+          seo_content: string | null
+          updated_at: string
+        }
+        Insert: {
+          country_name: string
+          country_slug: string
+          created_at?: string
+          hero_image?: string | null
+          highlights?: string[] | null
+          id?: string
+          intro_text?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          seo_content?: string | null
+          updated_at?: string
+        }
+        Update: {
+          country_name?: string
+          country_slug?: string
+          created_at?: string
+          hero_image?: string | null
+          highlights?: string[] | null
+          id?: string
+          intro_text?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          seo_content?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       destinations: {
         Row: {
           average_temperature: string | null
