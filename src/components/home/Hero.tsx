@@ -1,32 +1,39 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { searchDestinations } from "@/data/destinations";
+import { useDestinations } from "@/hooks/useDestinations";
 
 const Hero = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<ReturnType<typeof searchDestinations>>([]);
   const [showResults, setShowResults] = useState(false);
   const navigate = useNavigate();
+  
+  const { data: destinations = [] } = useDestinations();
+
+  // Search destinations from database
+  const searchResults = useMemo(() => {
+    if (searchQuery.length < 2) return [];
+    const query = searchQuery.toLowerCase();
+    return destinations
+      .filter(
+        (dest) =>
+          dest.name.toLowerCase().includes(query) ||
+          dest.country.toLowerCase().includes(query)
+      )
+      .slice(0, 5);
+  }, [searchQuery, destinations]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (query.length >= 2) {
-      const results = searchDestinations(query);
-      setSearchResults(results);
-      setShowResults(true);
-    } else {
-      setSearchResults([]);
-      setShowResults(false);
-    }
+    setShowResults(query.length >= 2);
   };
 
-  const handleSelectDestination = (categorySlug: string, destinationSlug: string) => {
+  const handleSelectDestination = (category: string, slug: string) => {
     setShowResults(false);
     setSearchQuery("");
-    navigate(`/${categorySlug}/${destinationSlug}`);
+    navigate(`/${category}/${slug}`);
   };
 
   return (
@@ -95,7 +102,7 @@ const Hero = () => {
           {/* Quick Stats */}
           <div className="mt-12 flex flex-wrap justify-center gap-8 text-white">
             <div className="text-center">
-              <p className="font-heading text-3xl font-bold">100+</p>
+              <p className="font-heading text-3xl font-bold">{destinations.length}+</p>
               <p className="text-sm text-white/80">Bestemmingen</p>
             </div>
             <div className="text-center">
