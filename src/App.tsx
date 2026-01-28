@@ -20,6 +20,7 @@ import ProtectedAdminRoute from "./components/admin/ProtectedAdminRoute";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import DestinationsListPage from "./pages/admin/DestinationsListPage";
 import NewDestinationPage from "./pages/admin/NewDestinationPage";
+import EditDestinationPage from "./pages/admin/EditDestinationPage";
 import DestinationContentPage from "./pages/admin/DestinationContentPage";
 import AdminSetupPage from "./pages/admin/AdminSetupPage";
 
@@ -48,7 +49,7 @@ const App = () => (
               <Route index element={<AdminDashboard />} />
               <Route path="destinations" element={<DestinationsListPage />} />
               <Route path="destinations/new" element={<NewDestinationPage />} />
-              <Route path="destinations/:id" element={<NewDestinationPage />} />
+              <Route path="destinations/:id" element={<EditDestinationPage />} />
               <Route path="destinations/:id/content" element={<DestinationContentPage />} />
             </Route>
             
