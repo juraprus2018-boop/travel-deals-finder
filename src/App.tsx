@@ -22,6 +22,8 @@ import DestinationsListPage from "./pages/admin/DestinationsListPage";
 import NewDestinationPage from "./pages/admin/NewDestinationPage";
 import EditDestinationPage from "./pages/admin/EditDestinationPage";
 import DestinationContentPage from "./pages/admin/DestinationContentPage";
+import ContentOverviewPage from "./pages/admin/ContentOverviewPage";
+import SettingsPage from "./pages/admin/SettingsPage";
 import AdminSetupPage from "./pages/admin/AdminSetupPage";
 
 const queryClient = new QueryClient();
@@ -51,6 +53,8 @@ const App = () => (
               <Route path="destinations/new" element={<NewDestinationPage />} />
               <Route path="destinations/:id" element={<EditDestinationPage />} />
               <Route path="destinations/:id/content" element={<DestinationContentPage />} />
+              <Route path="content" element={<ContentOverviewPage />} />
+              <Route path="settings" element={<SettingsPage />} />
             </Route>
             
             {/* Catch-all */}
