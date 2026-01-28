@@ -13,6 +13,8 @@ import DestinationPage from "./pages/DestinationPage";
 import HotelsPage from "./pages/HotelsPage";
 import AttractionsPage from "./pages/AttractionsPage";
 import FlightsPage from "./pages/FlightsPage";
+import CountryPage from "./pages/CountryPage";
+import CountriesOverviewPage from "./pages/CountriesOverviewPage";
 import NotFound from "./pages/NotFound";
 
 // Admin pages
@@ -40,6 +42,12 @@ const App = () => (
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
+            
+            {/* Country routes - must be before category routes */}
+            <Route path="/landen" element={<CountriesOverviewPage />} />
+            <Route path="/land/:countrySlug" element={<CountryPage />} />
+            
+            {/* Category & Destination routes */}
             <Route path="/:categorySlug" element={<CategoryPage />} />
             <Route path="/:categorySlug/:destinationSlug" element={<DestinationPage />} />
             <Route path="/:categorySlug/:destinationSlug/hotels" element={<HotelsPage />} />

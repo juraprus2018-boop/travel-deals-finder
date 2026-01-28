@@ -33,6 +33,13 @@ const Header = () => {
                 <span>{category.namePlural}</span>
               </Link>
             ))}
+            <Link
+              to="/landen"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              <span>🗺️</span>
+              <span>Landen</span>
+            </Link>
           </nav>
 
           {/* Desktop Actions */}
@@ -68,6 +75,14 @@ const Header = () => {
                   <span>{category.namePlural}</span>
                 </Link>
               ))}
+              <Link
+                to="/landen"
+                className="flex items-center gap-2 rounded-lg px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <span className="text-lg">🗺️</span>
+                <span>Landen</span>
+              </Link>
             </div>
           </nav>
         )}
