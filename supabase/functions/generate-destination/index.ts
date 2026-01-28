@@ -5,6 +5,68 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Models to try in order (fallback chain)
+const MODELS = [
+  "gemini-2.5-flash",
+  "gemini-2.0-flash", 
+  "gemini-1.5-flash",
+];
+
+async function callGoogleAI(apiKey: string, prompt: string, retries = 3): Promise<string> {
+  let lastError: Error | null = null;
+
+  for (const model of MODELS) {
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        console.log(`Trying model ${model}, attempt ${attempt + 1}/${retries}`);
+        
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { temperature: 0.3 },
+            }),
+          }
+        );
+
+        if (response.status === 503 || response.status === 429) {
+          const errorText = await response.text();
+          console.log(`Model ${model} unavailable (${response.status}): ${errorText}`);
+          // Wait before retry (exponential backoff)
+          await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+          continue;
+        }
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`Google AI error (${model}):`, response.status, errorText);
+          lastError = new Error(`Google AI error: ${response.status}`);
+          break; // Try next model
+        }
+
+        const data = await response.json();
+        const contentText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        
+        if (contentText) {
+          console.log(`Success with model ${model}`);
+          return contentText;
+        }
+        
+        lastError = new Error("No content in response");
+        break; // Try next model
+      } catch (e) {
+        lastError = e instanceof Error ? e : new Error(String(e));
+        console.error(`Error with ${model}:`, lastError.message);
+      }
+    }
+  }
+
+  throw lastError || new Error("All models failed");
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -55,45 +117,11 @@ Geef JSON terug met EXACT deze structuur (alleen JSON, geen andere tekst):
 Zorg dat de coördinaten correct zijn voor ${cityName}, ${countryName}.
 De slug moet lowercase zijn met streepjes in plaats van spaties.`;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_AI_API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.3,
-          },
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Google AI error:", response.status, errorText);
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit bereikt. Probeer het over een minuut opnieuw." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      throw new Error("Google AI error");
-    }
-
-    const data = await response.json();
-    const contentText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!contentText) {
-      throw new Error("No content received from AI");
-    }
+    const contentText = await callGoogleAI(GOOGLE_AI_API_KEY, prompt);
 
     // Parse the JSON from the AI response
     let generatedData;
     try {
-      // Remove markdown code blocks if present
       const cleanedText = contentText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
       generatedData = JSON.parse(cleanedText);
     } catch (parseError) {

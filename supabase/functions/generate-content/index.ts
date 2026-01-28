@@ -5,6 +5,62 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+
+async function callGoogleAI(apiKey: string, prompt: string, retries = 3): Promise<string> {
+  let lastError: Error | null = null;
+
+  for (const model of MODELS) {
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        console.log(`Trying model ${model}, attempt ${attempt + 1}/${retries}`);
+        
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { temperature: 0.7 },
+            }),
+          }
+        );
+
+        if (response.status === 503 || response.status === 429) {
+          const errorText = await response.text();
+          console.log(`Model ${model} unavailable (${response.status}): ${errorText}`);
+          await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+          continue;
+        }
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`Google AI error (${model}):`, response.status, errorText);
+          lastError = new Error(`Google AI error: ${response.status}`);
+          break;
+        }
+
+        const data = await response.json();
+        const contentText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        
+        if (contentText) {
+          console.log(`Success with model ${model}`);
+          return contentText;
+        }
+        
+        lastError = new Error("No content in response");
+        break;
+      } catch (e) {
+        lastError = e instanceof Error ? e : new Error(String(e));
+        console.error(`Error with ${model}:`, lastError.message);
+      }
+    }
+  }
+
+  throw lastError || new Error("All models failed");
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -24,11 +80,7 @@ serve(async (req) => {
 
     let prompt = `Je bent een ervaren Nederlandse reisschrijver die SEO-geoptimaliseerde content schrijft voor een affiliate reissite. 
 Je schrijft altijd in het Nederlands, op een inspirerende maar informatieve toon. 
-Je content moet:
-- Origineel en uniek zijn
-- SEO-vriendelijk met relevante zoekwoorden
-- Praktisch bruikbaar voor reizigers
-- Betrouwbaar en accuraat
+Je content moet origineel, SEO-vriendelijk en praktisch bruikbaar zijn.
 
 `;
 
@@ -41,49 +93,47 @@ Geef JSON terug met (alleen JSON, geen andere tekst):
   "title": "Pakkende titel voor de pagina (max 60 tekens)",
   "metaDescription": "SEO meta description (max 155 tekens)",
   "introText": "Korte intro van 2-3 zinnen over de bestemming",
-  "mainContent": "Uitgebreid artikel van 300-400 woorden over de bestemming, inclusief cultuur, bezienswaardigheden en tips",
+  "mainContent": "Uitgebreid artikel van 300-400 woorden over de bestemming",
   "tips": ["Tip 1", "Tip 2", "Tip 3", "Tip 4", "Tip 5"]
-}
-
-Belangrijk: ${destination.name} is een ${destination.category === 'stedentrips' ? 'stad' : destination.category === 'strandvakanties' ? 'strand bestemming' : 'bestemming'}.`;
+}`;
         break;
 
       case "hotels":
-        prompt += `Genereer content voor de hotels pagina van ${destination.name} in ${destination.country}.
+        prompt += `Genereer content voor de hotels pagina van ${destination.name}.
 
 Geef JSON terug met (alleen JSON, geen andere tekst):
 {
-  "title": "Hotels in ${destination.name} | Beste Overnachtingen (max 60 tekens)",
+  "title": "Hotels in ${destination.name} | Beste Overnachtingen",
   "metaDescription": "SEO meta description over hotels (max 155 tekens)",
   "introText": "Korte intro over overnachten in ${destination.name}",
-  "mainContent": "Uitgebreid artikel van 250-350 woorden over de beste wijken om te overnachten, soorten accommodaties, en tips voor het boeken",
+  "mainContent": "Uitgebreid artikel van 250-350 woorden over accommodaties",
   "tips": ["Boektip 1", "Boektip 2", "Boektip 3"]
 }`;
         break;
 
       case "bezienswaardigheden":
-        prompt += `Genereer content voor de bezienswaardigheden pagina van ${destination.name} in ${destination.country}.
+        prompt += `Genereer content voor de bezienswaardigheden pagina van ${destination.name}.
 
 Geef JSON terug met (alleen JSON, geen andere tekst):
 {
-  "title": "Top Bezienswaardigheden ${destination.name} | Must-sees (max 60 tekens)",
+  "title": "Top Bezienswaardigheden ${destination.name} | Must-sees",
   "metaDescription": "SEO meta description over bezienswaardigheden (max 155 tekens)",
   "introText": "Korte intro over wat er te doen is in ${destination.name}",
-  "mainContent": "Uitgebreid artikel van 400-500 woorden met een Top 10 van bezienswaardigheden. Beschrijf elke bezienswaardigheid kort met praktische info.",
+  "mainContent": "Uitgebreid artikel van 400-500 woorden met Top 10 bezienswaardigheden",
   "tips": ["Bezoek tip 1", "Bezoek tip 2", "Bezoek tip 3", "Bezoek tip 4", "Bezoek tip 5"]
 }`;
         break;
 
       case "vliegtickets":
-        prompt += `Genereer content voor de vliegtickets pagina van ${destination.name} in ${destination.country}.
-De dichtstbijzijnde luchthaven is: ${destination.nearestAirport || "onbekend"}.
+        prompt += `Genereer content voor de vliegtickets pagina van ${destination.name}.
+Dichtstbijzijnde luchthaven: ${destination.nearestAirport || "onbekend"}.
 
 Geef JSON terug met (alleen JSON, geen andere tekst):
 {
-  "title": "Vliegtickets naar ${destination.name} | Goedkope Vluchten (max 60 tekens)",
+  "title": "Vliegtickets naar ${destination.name} | Goedkope Vluchten",
   "metaDescription": "SEO meta description over vluchten (max 155 tekens)",
   "introText": "Korte intro over vliegen naar ${destination.name}",
-  "mainContent": "Uitgebreid artikel van 250-350 woorden over de luchthaven(s), luchtvaartmaatschappijen die er vliegen, beste tijd om te boeken, en tips voor goedkope tickets",
+  "mainContent": "Uitgebreid artikel van 250-350 woorden over vluchten en tips",
   "tips": ["Vlucht tip 1", "Vlucht tip 2", "Vlucht tip 3"]
 }`;
         break;
@@ -92,45 +142,10 @@ Geef JSON terug met (alleen JSON, geen andere tekst):
         throw new Error(`Unknown page type: ${pageType}`);
     }
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_AI_API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.7,
-          },
-        }),
-      }
-    );
+    const contentText = await callGoogleAI(GOOGLE_AI_API_KEY, prompt);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Google AI error:", response.status, errorText);
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit bereikt. Probeer het over een minuut opnieuw." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      throw new Error("Google AI error");
-    }
-
-    const data = await response.json();
-    const contentText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!contentText) {
-      throw new Error("No content received from AI");
-    }
-
-    // Parse the JSON from the AI response
     let generatedContent;
     try {
-      // Remove markdown code blocks if present
       const cleanedText = contentText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
       generatedContent = JSON.parse(cleanedText);
     } catch (parseError) {
