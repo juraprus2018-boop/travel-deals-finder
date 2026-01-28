@@ -1,8 +1,9 @@
 import { useParams, Link } from "react-router-dom";
-import { MapPin, Utensils, Clock, Euro, Star, ThumbsUp, Loader2 } from "lucide-react";
+import { MapPin, Utensils, Euro, Star, Phone, Clock, ExternalLink, Loader2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useDestinationBySlug } from "@/hooks/useDestinations";
+import { useRestaurantsByDestination } from "@/hooks/useRestaurants";
 import { getCategoryById } from "@/data/categories";
 import {
   Breadcrumb,
@@ -13,74 +14,17 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-// Mock restaurants data - in production would be from AI-generated database
-const getRestaurants = (destinationName: string) => [
-  {
-    id: 1,
-    name: `Restaurant ${destinationName} Klassiek`,
-    description: `Authentieke lokale keuken met moderne twist. Een van de beste restaurants in ${destinationName}.`,
-    cuisine: "Lokaal & Traditioneel",
-    priceRange: "€€€",
-    rating: 4.8,
-    reviews: 2150,
-    image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80",
-    tip: "Reserveer minimaal een week van tevoren, vooral in het weekend",
-  },
-  {
-    id: 2,
-    name: "Trattoria del Porto",
-    description: "Gezellige sfeer met verse vis en zeevruchten. Perfect voor een romantisch diner.",
-    cuisine: "Vis & Zeevruchten",
-    priceRange: "€€",
-    rating: 4.7,
-    reviews: 1890,
-    image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80",
-    tip: "Vraag naar de dagverse specialiteit",
-  },
-  {
-    id: 3,
-    name: "Streetfood Market",
-    description: "Culinaire markt met diverse kraampjes. Ideaal om verschillende smaken te proeven.",
-    cuisine: "Streetfood & Mix",
-    priceRange: "€",
-    rating: 4.6,
-    reviews: 3200,
-    image: "https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=400&q=80",
-    tip: "Bezoek doordeweeks om de drukte te vermijden",
-  },
-  {
-    id: 4,
-    name: "Vista Rooftop Restaurant",
-    description: "Fine dining met adembenemend uitzicht over de stad. Perfecte locatie voor speciale gelegenheden.",
-    cuisine: "Fine Dining",
-    priceRange: "€€€€",
-    rating: 4.9,
-    reviews: 980,
-    image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80",
-    tip: "Boek een tafel bij zonsondergang voor de beste ervaring",
-  },
-  {
-    id: 5,
-    name: "Café Central",
-    description: "Charmant café voor ontbijt en lunch. Bekend om de verse gebakjes en koffie.",
-    cuisine: "Café & Lunch",
-    priceRange: "€",
-    rating: 4.5,
-    reviews: 4100,
-    image: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&q=80",
-    tip: "Probeer de huisgemaakte taart van de dag",
-  },
-];
-
 const RestaurantsPage = () => {
   const { categorySlug, destinationSlug } = useParams<{
     categorySlug: string;
     destinationSlug: string;
   }>();
 
-  const { data: destination, isLoading } = useDestinationBySlug(destinationSlug || "");
+  const { data: destination, isLoading: isLoadingDestination } = useDestinationBySlug(destinationSlug || "");
+  const { data: restaurants = [], isLoading: isLoadingRestaurants } = useRestaurantsByDestination(destination?.id);
   const category = destination ? getCategoryById(destination.category) : null;
-  const restaurants = destination ? getRestaurants(destination.name) : [];
+
+  const isLoading = isLoadingDestination || isLoadingRestaurants;
 
   if (isLoading) {
     return (
@@ -104,6 +48,11 @@ const RestaurantsPage = () => {
       </Layout>
     );
   }
+
+  const getPriceLabel = (level: number | null) => {
+    if (!level) return null;
+    return "€".repeat(level);
+  };
 
   return (
     <Layout>
@@ -147,7 +96,7 @@ const RestaurantsPage = () => {
               </h1>
               <p className="flex items-center gap-1.5 text-muted-foreground">
                 <MapPin className="h-4 w-4" />
-                Top {restaurants.length} eetgelegenheden
+                {restaurants.length > 0 ? `Top ${restaurants.length} eetgelegenheden` : "Eetgelegenheden"}
               </p>
             </div>
           </div>
@@ -169,60 +118,129 @@ const RestaurantsPage = () => {
                   Van lokale specialiteiten tot internationale keukens.
                 </p>
 
-                <div className="space-y-6">
-                  {restaurants.map((restaurant, index) => (
-                    <div
-                      key={restaurant.id}
-                      className="flex gap-4 rounded-lg border bg-secondary/20 p-4 transition-colors hover:bg-secondary/40"
-                    >
-                      {/* Number */}
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
-                        {index + 1}
-                      </div>
-
-                      {/* Image */}
-                      <div className="hidden h-24 w-32 shrink-0 overflow-hidden rounded-lg sm:block">
-                        <img
-                          src={restaurant.image}
-                          alt={restaurant.name}
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1">
-                        <h3 className="mb-1 font-heading font-semibold">
-                          {restaurant.name}
-                        </h3>
-                        <p className="mb-3 text-sm text-muted-foreground">
-                          {restaurant.description}
-                        </p>
-
-                        {/* Meta info */}
-                        <div className="mb-3 flex flex-wrap gap-3 text-xs">
-                          <span className="flex items-center gap-1 text-muted-foreground">
-                            <Utensils className="h-3.5 w-3.5" />
-                            {restaurant.cuisine}
-                          </span>
-                          <span className="flex items-center gap-1 text-muted-foreground">
-                            <Euro className="h-3.5 w-3.5" />
-                            {restaurant.priceRange}
-                          </span>
-                          <span className="flex items-center gap-1 text-muted-foreground">
-                            <Star className="h-3.5 w-3.5 fill-accent text-accent" />
-                            {restaurant.rating} ({restaurant.reviews.toLocaleString()})
-                          </span>
+                {restaurants.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Utensils className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Nog geen restaurants beschikbaar voor deze bestemming.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {restaurants.map((restaurant, index) => (
+                      <div
+                        key={restaurant.id}
+                        className="flex gap-4 rounded-lg border bg-secondary/20 p-4 transition-colors hover:bg-secondary/40"
+                      >
+                        {/* Number */}
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
+                          {index + 1}
                         </div>
 
-                        {/* Tip */}
-                        <div className="flex items-start gap-2 rounded-lg bg-primary/5 px-3 py-2">
-                          <ThumbsUp className="mt-0.5 h-4 w-4 text-primary" />
-                          <p className="text-xs text-foreground">{restaurant.tip}</p>
+                        {/* Image */}
+                        {restaurant.photo_url && (
+                          <div className="hidden h-24 w-32 shrink-0 overflow-hidden rounded-lg sm:block">
+                            <img
+                              src={restaurant.photo_url}
+                              alt={restaurant.name}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        )}
+
+                        {/* Content */}
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <h3 className="font-heading font-semibold">
+                              {restaurant.name}
+                            </h3>
+                            {restaurant.google_maps_url && (
+                              <a
+                                href={restaurant.google_maps_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="shrink-0 text-primary hover:text-primary/80"
+                                title="Bekijk op Google Maps"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </a>
+                            )}
+                          </div>
+                          
+                          {restaurant.address && (
+                            <p className="mb-3 text-sm text-muted-foreground">
+                              {restaurant.address}
+                            </p>
+                          )}
+
+                          {/* Meta info */}
+                          <div className="mb-3 flex flex-wrap gap-3 text-xs">
+                            {restaurant.rating && (
+                              <span className="flex items-center gap-1 text-muted-foreground">
+                                <Star className="h-3.5 w-3.5 fill-accent text-accent" />
+                                {restaurant.rating} ({restaurant.user_ratings_total?.toLocaleString()})
+                              </span>
+                            )}
+                            {restaurant.price_level && (
+                              <span className="flex items-center gap-1 text-muted-foreground">
+                                <Euro className="h-3.5 w-3.5" />
+                                {getPriceLabel(restaurant.price_level)}
+                              </span>
+                            )}
+                            {restaurant.cuisine_types && restaurant.cuisine_types.length > 0 && (
+                              <span className="flex items-center gap-1 text-muted-foreground">
+                                <Utensils className="h-3.5 w-3.5" />
+                                {restaurant.cuisine_types.slice(0, 2).join(", ")}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Contact & Hours */}
+                          <div className="flex flex-wrap gap-4 text-xs">
+                            {restaurant.phone && (
+                              <a 
+                                href={`tel:${restaurant.phone}`}
+                                className="flex items-center gap-1 text-primary hover:underline"
+                              >
+                                <Phone className="h-3.5 w-3.5" />
+                                {restaurant.phone}
+                              </a>
+                            )}
+                            {restaurant.website && (
+                              <a
+                                href={restaurant.website}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-primary hover:underline"
+                              >
+                                <ExternalLink className="h-3.5 w-3.5" />
+                                Website
+                              </a>
+                            )}
+                            {restaurant.is_open_now !== null && (
+                              <span className={`flex items-center gap-1 ${restaurant.is_open_now ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                <Clock className="h-3.5 w-3.5" />
+                                {restaurant.is_open_now ? 'Nu geopend' : 'Gesloten'}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Opening hours expandable */}
+                          {restaurant.opening_hours && restaurant.opening_hours.length > 0 && (
+                            <details className="mt-3">
+                              <summary className="cursor-pointer text-xs text-primary hover:underline">
+                                Bekijk openingstijden
+                              </summary>
+                              <ul className="mt-2 text-xs text-muted-foreground space-y-1">
+                                {restaurant.opening_hours.map((hours, i) => (
+                                  <li key={i}>{hours}</li>
+                                ))}
+                              </ul>
+                            </details>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 

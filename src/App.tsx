@@ -26,6 +26,7 @@ import DestinationsListPage from "./pages/admin/DestinationsListPage";
 import NewDestinationPage from "./pages/admin/NewDestinationPage";
 import EditDestinationPage from "./pages/admin/EditDestinationPage";
 import DestinationContentPage from "./pages/admin/DestinationContentPage";
+import RestaurantsManagePage from "./pages/admin/RestaurantsManagePage";
 import ContentOverviewPage from "./pages/admin/ContentOverviewPage";
 import SettingsPage from "./pages/admin/SettingsPage";
 import AdminSetupPage from "./pages/admin/AdminSetupPage";
@@ -67,6 +68,7 @@ const App = () => (
               <Route path="destinations/new" element={<NewDestinationPage />} />
               <Route path="destinations/:id" element={<EditDestinationPage />} />
               <Route path="destinations/:id/content" element={<DestinationContentPage />} />
+              <Route path="destinations/:id/restaurants" element={<RestaurantsManagePage />} />
               <Route path="content" element={<ContentOverviewPage />} />
               <Route path="landen" element={<CountryContentListPage />} />
               <Route path="landen/:countrySlug" element={<CountryContentEditPage />} />
