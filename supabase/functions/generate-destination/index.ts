@@ -12,10 +12,10 @@ serve(async (req) => {
 
   try {
     const { cityName, countryName, countryCode, category } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
 
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    if (!GOOGLE_AI_API_KEY) {
+      throw new Error("GOOGLE_AI_API_KEY is not configured");
     }
 
     if (!cityName || !countryName || !category) {
@@ -30,14 +30,12 @@ serve(async (req) => {
       pretparken: "pretpark bestemming",
     };
 
-    const systemPrompt = `Je bent een ervaren Nederlandse reisexpert die gedetailleerde informatie genereert over Europese reisbestemmingen.
+    const prompt = `Je bent een ervaren Nederlandse reisexpert die gedetailleerde informatie genereert over Europese reisbestemmingen.
 Je antwoorden zijn altijd in het Nederlands en bevatten accurate, bruikbare informatie.
 
-BELANGRIJK: Antwoord ALLEEN met valid JSON, geen extra tekst of uitleg.`;
+Genereer volledige informatie voor ${cityName} in ${countryName} als ${categoryLabels[category] || "bestemming"}.
 
-    const userPrompt = `Genereer volledige informatie voor ${cityName} in ${countryName} als ${categoryLabels[category] || "bestemming"}.
-
-Geef JSON terug met EXACT deze structuur:
+Geef JSON terug met EXACT deze structuur (alleen JSON, geen andere tekst):
 {
   "name": "${cityName}",
   "country": "${countryName}",
@@ -57,42 +55,36 @@ Geef JSON terug met EXACT deze structuur:
 Zorg dat de coördinaten correct zijn voor ${cityName}, ${countryName}.
 De slug moet lowercase zijn met streepjes in plaats van spaties.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.3,
-      }),
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_AI_API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.3,
+          },
+        }),
+      }
+    );
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Google AI error:", response.status, errorText);
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "Rate limit bereikt. Probeer het over een minuut opnieuw." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Krediet op. Voeg credits toe aan je Lovable workspace." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      throw new Error("AI gateway error");
+      throw new Error("Google AI error");
     }
 
     const data = await response.json();
-    const contentText = data.choices?.[0]?.message?.content;
+    const contentText = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!contentText) {
       throw new Error("No content received from AI");
