@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { ArrowLeft, Save, Loader2, FileText, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -12,10 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Tables, TablesUpdate } from "@/integrations/supabase/types";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 type CategoryType = "stedentrips" | "strandvakanties" | "wintersport" | "vakantieparken" | "pretparken";
 type Destination = Tables<"destinations">;
@@ -279,9 +281,16 @@ const EditDestinationPage = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="heroImage">Hero Afbeelding URL</Label>
+              <Label>Hero Afbeelding</Label>
+              <ImageUpload
+                currentImageUrl={formData.heroImage}
+                onImageUploaded={(url) => setFormData((prev) => ({ ...prev, heroImage: url }))}
+                destinationSlug={formData.slug || "destination"}
+              />
+              <p className="text-xs text-muted-foreground">
+                Of voer een URL in:
+              </p>
               <Input
-                id="heroImage"
                 type="url"
                 placeholder="https://..."
                 value={formData.heroImage}
@@ -364,22 +373,79 @@ const EditDestinationPage = () => {
           </CardContent>
         </Card>
 
-        {/* Submit */}
-        <div className="lg:col-span-2">
-          <Button type="submit" size="lg" className="gap-2" disabled={isSubmitting}>
-            {isSubmitting ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Opslaan...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4" />
-                Wijzigingen Opslaan
-              </>
-            )}
-          </Button>
-        </div>
+        {/* Publish & Actions */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Publicatie & Acties</CardTitle>
+            <CardDescription>
+              Beheer de publicatiestatus en content
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <Label htmlFor="publish">Publiceren</Label>
+                <p className="text-sm text-muted-foreground">
+                  Maak deze bestemming zichtbaar op de website
+                </p>
+              </div>
+              <Switch
+                id="publish"
+                checked={formData.isPublished}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) => ({ ...prev, isPublished: checked }))
+                }
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <Button type="submit" size="lg" className="gap-2" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Opslaan...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    Wijzigingen Opslaan
+                  </>
+                )}
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="gap-2"
+                asChild
+              >
+                <Link to={`/admin/destinations/${id}/content`}>
+                  <FileText className="h-4 w-4" />
+                  Content Beheren
+                </Link>
+              </Button>
+
+              {formData.isPublished && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="lg"
+                  className="gap-2"
+                  asChild
+                >
+                  <Link
+                    to={`/${formData.category}/${formData.slug}`}
+                    target="_blank"
+                  >
+                    <Eye className="h-4 w-4" />
+                    Bekijken
+                  </Link>
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </form>
     </div>
   );
