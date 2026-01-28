@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { MapPin, Camera, Clock, Euro, Star, ThumbsUp, Loader2 } from "lucide-react";
+import { MapPin, Utensils, Clock, Euro, Star, ThumbsUp, Loader2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useDestinationBySlug } from "@/hooks/useDestinations";
@@ -13,66 +13,66 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-// Mock attractions data - in production would be from AI-generated database
-const getAttractions = (destinationName: string) => [
+// Mock restaurants data - in production would be from AI-generated database
+const getRestaurants = (destinationName: string) => [
   {
     id: 1,
-    name: `Top attractie van ${destinationName}`,
-    description: `De meest bezochte attractie van ${destinationName}. Een absolute must-see voor elke bezoeker.`,
-    duration: "2-3 uur",
-    price: "€15-25",
+    name: `Restaurant ${destinationName} Klassiek`,
+    description: `Authentieke lokale keuken met moderne twist. Een van de beste restaurants in ${destinationName}.`,
+    cuisine: "Lokaal & Traditioneel",
+    priceRange: "€€€",
     rating: 4.8,
-    reviews: 12500,
-    image: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400&q=80",
-    tip: "Koop tickets online om wachtrijen te vermijden",
+    reviews: 2150,
+    image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80",
+    tip: "Reserveer minimaal een week van tevoren, vooral in het weekend",
   },
   {
     id: 2,
-    name: `Historisch centrum ${destinationName}`,
-    description: "Wandel door de prachtige historische straten vol cultuur en geschiedenis.",
-    duration: "3-4 uur",
-    price: "Gratis",
+    name: "Trattoria del Porto",
+    description: "Gezellige sfeer met verse vis en zeevruchten. Perfect voor een romantisch diner.",
+    cuisine: "Vis & Zeevruchten",
+    priceRange: "€€",
     rating: 4.7,
-    reviews: 8900,
-    image: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&q=80",
-    tip: "Neem een gratis stadswandeling voor meer achtergrond",
+    reviews: 1890,
+    image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&q=80",
+    tip: "Vraag naar de dagverse specialiteit",
   },
   {
     id: 3,
-    name: `Lokale markt`,
-    description: "Proef lokale specialiteiten en ontdek authentieke producten op deze levendige markt.",
-    duration: "1-2 uur",
-    price: "Gratis toegang",
+    name: "Streetfood Market",
+    description: "Culinaire markt met diverse kraampjes. Ideaal om verschillende smaken te proeven.",
+    cuisine: "Streetfood & Mix",
+    priceRange: "€",
     rating: 4.6,
-    reviews: 5600,
-    image: "https://images.unsplash.com/photo-1533900298318-6b8da08a523e?w=400&q=80",
-    tip: "Bezoek in de ochtend voor de beste producten",
+    reviews: 3200,
+    image: "https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=400&q=80",
+    tip: "Bezoek doordeweeks om de drukte te vermijden",
   },
   {
     id: 4,
-    name: `Museum van ${destinationName}`,
-    description: "Een wereldberoemd museum met indrukwekkende collecties kunst en geschiedenis.",
-    duration: "3-4 uur",
-    price: "€18-22",
+    name: "Vista Rooftop Restaurant",
+    description: "Fine dining met adembenemend uitzicht over de stad. Perfecte locatie voor speciale gelegenheden.",
+    cuisine: "Fine Dining",
+    priceRange: "€€€€",
     rating: 4.9,
-    reviews: 15200,
-    image: "https://images.unsplash.com/photo-1554907984-15263bfd63bd?w=400&q=80",
-    tip: "Eerste zondag van de maand gratis toegang",
+    reviews: 980,
+    image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80",
+    tip: "Boek een tafel bij zonsondergang voor de beste ervaring",
   },
   {
     id: 5,
-    name: `Panoramisch uitzichtpunt`,
-    description: "Geniet van een adembenemend uitzicht over de hele stad en omgeving.",
-    duration: "1-2 uur",
-    price: "€8-12",
-    rating: 4.7,
-    reviews: 7800,
-    image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400&q=80",
-    tip: "Kom bij zonsondergang voor de mooiste foto's",
+    name: "Café Central",
+    description: "Charmant café voor ontbijt en lunch. Bekend om de verse gebakjes en koffie.",
+    cuisine: "Café & Lunch",
+    priceRange: "€",
+    rating: 4.5,
+    reviews: 4100,
+    image: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&q=80",
+    tip: "Probeer de huisgemaakte taart van de dag",
   },
 ];
 
-const AttractionsPage = () => {
+const RestaurantsPage = () => {
   const { categorySlug, destinationSlug } = useParams<{
     categorySlug: string;
     destinationSlug: string;
@@ -80,7 +80,7 @@ const AttractionsPage = () => {
 
   const { data: destination, isLoading } = useDestinationBySlug(destinationSlug || "");
   const category = destination ? getCategoryById(destination.category) : null;
-  const attractions = destination ? getAttractions(destination.name) : [];
+  const restaurants = destination ? getRestaurants(destination.name) : [];
 
   if (isLoading) {
     return (
@@ -132,22 +132,22 @@ const AttractionsPage = () => {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>Bezienswaardigheden</BreadcrumbPage>
+                <BreadcrumbPage>Restaurants</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
 
           <div className="flex items-center gap-3 mb-2">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-2xl">
-              🎯
+              🍽️
             </div>
             <div>
               <h1 className="font-heading text-2xl font-bold md:text-3xl">
-                Bezienswaardigheden in {destination.name}
+                Restaurants in {destination.name}
               </h1>
               <p className="flex items-center gap-1.5 text-muted-foreground">
                 <MapPin className="h-4 w-4" />
-                Top {attractions.length} dingen om te doen
+                Top {restaurants.length} eetgelegenheden
               </p>
             </div>
           </div>
@@ -158,21 +158,21 @@ const AttractionsPage = () => {
       <section className="py-8 md:py-12">
         <div className="container mx-auto px-4">
           <div className="grid gap-8 lg:grid-cols-3">
-            {/* Left Column - Attractions List */}
+            {/* Left Column - Restaurants List */}
             <div className="lg:col-span-2 space-y-6">
               <div className="rounded-xl border bg-card p-6">
                 <h2 className="mb-2 font-heading text-xl font-semibold">
-                  De beste bezienswaardigheden
+                  De beste restaurants
                 </h2>
                 <p className="mb-6 text-muted-foreground">
-                  Ontdek de mooiste plekken en activiteiten in {destination.name}. 
-                  Van historische monumenten tot verborgen parels.
+                  Ontdek de lekkerste eetgelegenheden in {destination.name}. 
+                  Van lokale specialiteiten tot internationale keukens.
                 </p>
 
                 <div className="space-y-6">
-                  {attractions.map((attraction, index) => (
+                  {restaurants.map((restaurant, index) => (
                     <div
-                      key={attraction.id}
+                      key={restaurant.id}
                       className="flex gap-4 rounded-lg border bg-secondary/20 p-4 transition-colors hover:bg-secondary/40"
                     >
                       {/* Number */}
@@ -183,8 +183,8 @@ const AttractionsPage = () => {
                       {/* Image */}
                       <div className="hidden h-24 w-32 shrink-0 overflow-hidden rounded-lg sm:block">
                         <img
-                          src={attraction.image}
-                          alt={attraction.name}
+                          src={restaurant.image}
+                          alt={restaurant.name}
                           className="h-full w-full object-cover"
                         />
                       </div>
@@ -192,32 +192,32 @@ const AttractionsPage = () => {
                       {/* Content */}
                       <div className="flex-1">
                         <h3 className="mb-1 font-heading font-semibold">
-                          {attraction.name}
+                          {restaurant.name}
                         </h3>
                         <p className="mb-3 text-sm text-muted-foreground">
-                          {attraction.description}
+                          {restaurant.description}
                         </p>
 
                         {/* Meta info */}
                         <div className="mb-3 flex flex-wrap gap-3 text-xs">
                           <span className="flex items-center gap-1 text-muted-foreground">
-                            <Clock className="h-3.5 w-3.5" />
-                            {attraction.duration}
+                            <Utensils className="h-3.5 w-3.5" />
+                            {restaurant.cuisine}
                           </span>
                           <span className="flex items-center gap-1 text-muted-foreground">
                             <Euro className="h-3.5 w-3.5" />
-                            {attraction.price}
+                            {restaurant.priceRange}
                           </span>
                           <span className="flex items-center gap-1 text-muted-foreground">
                             <Star className="h-3.5 w-3.5 fill-accent text-accent" />
-                            {attraction.rating} ({attraction.reviews.toLocaleString()})
+                            {restaurant.rating} ({restaurant.reviews.toLocaleString()})
                           </span>
                         </div>
 
                         {/* Tip */}
                         <div className="flex items-start gap-2 rounded-lg bg-primary/5 px-3 py-2">
                           <ThumbsUp className="mt-0.5 h-4 w-4 text-primary" />
-                          <p className="text-xs text-foreground">{attraction.tip}</p>
+                          <p className="text-xs text-foreground">{restaurant.tip}</p>
                         </div>
                       </div>
                     </div>
@@ -231,18 +231,18 @@ const AttractionsPage = () => {
               <div className="sticky top-24 space-y-6">
                 <div className="rounded-xl border bg-card p-6">
                   <h3 className="mb-4 font-heading font-semibold">
-                    Boek tours & tickets
+                    Reserveer een tafel
                   </h3>
                   <p className="mb-4 text-sm text-muted-foreground">
-                    Sla de wachtrij over en boek je tickets online. Bekijk rondleidingen 
-                    en activiteiten met een lokale gids.
+                    Boek direct een tafel bij de beste restaurants in {destination.name}. 
+                    Vergelijk prijzen en lees beoordelingen.
                   </p>
                   <Button className="w-full gap-2">
-                    <Camera className="h-4 w-4" />
-                    Bekijk Tours
+                    <Utensils className="h-4 w-4" />
+                    Zoek Restaurants
                   </Button>
                   <p className="mt-2 text-center text-xs text-muted-foreground">
-                    Powered by GetYourGuide
+                    Powered by TheFork
                   </p>
                 </div>
 
@@ -258,10 +258,10 @@ const AttractionsPage = () => {
                       🏨 Hotels in {destination.name}
                     </Link>
                     <Link
-                      to={`/${categorySlug}/${destinationSlug}/restaurants`}
+                      to={`/${categorySlug}/${destinationSlug}/bezienswaardigheden`}
                       className="flex items-center gap-2 rounded-lg bg-secondary/50 px-3 py-2 text-sm transition-colors hover:bg-secondary"
                     >
-                      🍽️ Restaurants in {destination.name}
+                      🎯 Bezienswaardigheden
                     </Link>
                     <Link
                       to={`/${categorySlug}/${destinationSlug}/vliegtickets`}
@@ -274,12 +274,12 @@ const AttractionsPage = () => {
 
                 <div className="rounded-xl border bg-accent/10 p-6">
                   <h3 className="mb-2 font-heading font-semibold text-accent-foreground">
-                    💡 Insider tip
+                    💡 Eet tip
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Plan je bezoek aan populaire attracties vroeg in de ochtend of 
-                    laat in de middag om de drukte te vermijden. De meeste toeristen 
-                    bezoeken tussen 11:00 en 14:00.
+                    Eet zoals de locals! Lunch is vaak het hoofdmaal en veel 
+                    restaurants bieden een voordelig dagmenu aan. Avondeten 
+                    begint meestal pas na 20:00 uur.
                   </p>
                 </div>
               </div>
@@ -291,4 +291,4 @@ const AttractionsPage = () => {
   );
 };
 
-export default AttractionsPage;
+export default RestaurantsPage;
