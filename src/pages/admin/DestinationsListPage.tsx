@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Search, Edit, Trash2, Eye, EyeOff, Sparkles, ExternalLink } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Eye, EyeOff, Sparkles, ExternalLink, Utensils } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -197,6 +197,14 @@ const DestinationsListPage = () => {
                           title="AI Content"
                         >
                           <Sparkles className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <Button variant="ghost" size="icon" asChild>
+                        <Link 
+                          to={`/admin/destinations/${destination.id}/restaurants`}
+                          title="Restaurants beheren"
+                        >
+                          <Utensils className="h-4 w-4" />
                         </Link>
                       </Button>
                       <Button variant="ghost" size="icon" asChild>
