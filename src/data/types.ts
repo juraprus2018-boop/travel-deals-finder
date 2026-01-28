@@ -38,7 +38,7 @@ export interface Destination {
 
 export interface DestinationContent {
   destinationId: string;
-  pageType: "main" | "hotels" | "bezienswaardigheden" | "vliegtickets";
+  pageType: "main" | "hotels" | "bezienswaardigheden" | "vliegtickets" | "restaurants";
   title: string;
   metaDescription: string;
   introText: string;
@@ -69,6 +69,13 @@ export const SUB_PAGES: SubPage[] = [
     title: "Bezienswaardigheden",
     description: "Top 10 dingen om te doen en zien",
     icon: "🎯",
+  },
+  {
+    id: "restaurants",
+    slug: "restaurants",
+    title: "Restaurants",
+    description: "Ontdek de beste eetgelegenheden",
+    icon: "🍽️",
   },
   {
     id: "vliegtickets",

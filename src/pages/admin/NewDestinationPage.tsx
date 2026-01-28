@@ -102,6 +102,7 @@ const NewDestinationPage = () => {
         currency: generatedPreview.currency,
         language: generatedPreview.language,
         nearest_airport: generatedPreview.nearestAirport,
+        hero_image: generatedPreview.heroImage || null,
         is_published: false,
       };
 
@@ -266,6 +267,17 @@ const NewDestinationPage = () => {
           <CardContent>
             {generatedPreview ? (
               <div className="space-y-4">
+                {/* Hero Image Preview */}
+                {generatedPreview.heroImage && (
+                  <div className="relative aspect-video overflow-hidden rounded-lg">
+                    <img
+                      src={generatedPreview.heroImage}
+                      alt={generatedPreview.name}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                )}
+                
                 <div>
                   <h3 className="text-xl font-bold">{generatedPreview.name}</h3>
                   <p className="text-sm text-muted-foreground">

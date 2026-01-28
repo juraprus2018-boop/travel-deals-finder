@@ -15,6 +15,7 @@ import AttractionsPage from "./pages/AttractionsPage";
 import FlightsPage from "./pages/FlightsPage";
 import CountryPage from "./pages/CountryPage";
 import CountriesOverviewPage from "./pages/CountriesOverviewPage";
+import RestaurantsPage from "./pages/RestaurantsPage";
 import NotFound from "./pages/NotFound";
 
 // Admin pages
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="/:categorySlug/:destinationSlug" element={<DestinationPage />} />
             <Route path="/:categorySlug/:destinationSlug/hotels" element={<HotelsPage />} />
             <Route path="/:categorySlug/:destinationSlug/bezienswaardigheden" element={<AttractionsPage />} />
+            <Route path="/:categorySlug/:destinationSlug/restaurants" element={<RestaurantsPage />} />
             <Route path="/:categorySlug/:destinationSlug/vliegtickets" element={<FlightsPage />} />
             
             {/* Admin routes */}

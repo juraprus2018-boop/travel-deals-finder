@@ -183,6 +183,11 @@ const FlightsPage = () => {
                     🏨 Zoek Hotels in {destination.name}
                   </Button>
                 </Link>
+                <Link to={`/${categorySlug}/${destinationSlug}/restaurants`}>
+                  <Button variant="outline" className="w-full">
+                    🍽️ Bekijk Restaurants
+                  </Button>
+                </Link>
               </div>
             </div>
 

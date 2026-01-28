@@ -138,6 +138,19 @@ Geef JSON terug met (alleen JSON, geen andere tekst):
 }`;
         break;
 
+      case "restaurants":
+        prompt += `Genereer content voor de restaurants pagina van ${destination.name} in ${destination.country}.
+
+Geef JSON terug met (alleen JSON, geen andere tekst):
+{
+  "title": "Restaurants in ${destination.name} | Beste Eetgelegenheden",
+  "metaDescription": "SEO meta description over restaurants en culinaire highlights (max 155 tekens)",
+  "introText": "Korte intro over eten en drinken in ${destination.name}",
+  "mainContent": "Uitgebreid artikel van 300-400 woorden over de lokale keuken, typische gerechten, beste wijken om te eten en culinaire tips",
+  "tips": ["Restaurant tip 1", "Restaurant tip 2", "Restaurant tip 3", "Culinaire tip 4", "Lokale specialiteit tip 5"]
+}`;
+        break;
+
       default:
         throw new Error(`Unknown page type: ${pageType}`);
     }

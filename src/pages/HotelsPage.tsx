@@ -148,11 +148,18 @@ const HotelsPage = () => {
                 </ul>
               </div>
 
-              <Link to={`/${categorySlug}/${destinationSlug}/bezienswaardigheden`}>
-                <Button variant="outline" className="w-full">
-                  🎯 Bekijk Bezienswaardigheden
-                </Button>
-              </Link>
+              <div className="space-y-2">
+                <Link to={`/${categorySlug}/${destinationSlug}/bezienswaardigheden`}>
+                  <Button variant="outline" className="w-full">
+                    🎯 Bekijk Bezienswaardigheden
+                  </Button>
+                </Link>
+                <Link to={`/${categorySlug}/${destinationSlug}/restaurants`}>
+                  <Button variant="outline" className="w-full">
+                    🍽️ Bekijk Restaurants
+                  </Button>
+                </Link>
+              </div>
             </div>
 
             {/* Right Column - Stay22 Map */}

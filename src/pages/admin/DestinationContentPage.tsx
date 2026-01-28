@@ -11,12 +11,13 @@ import ContentEditor from "@/components/admin/ContentEditor";
 
 type Destination = Tables<"destinations">;
 type GeneratedContent = Tables<"generated_content">;
-type PageType = "main" | "hotels" | "bezienswaardigheden" | "vliegtickets";
+type PageType = "main" | "hotels" | "bezienswaardigheden" | "restaurants" | "vliegtickets";
 
 const pageTypes: { id: PageType; label: string; icon: string; description: string }[] = [
   { id: "main", label: "Hoofdpagina", icon: "📄", description: "Algemene informatie over de bestemming" },
   { id: "hotels", label: "Hotels", icon: "🏨", description: "Overnachtingen en accommodaties" },
   { id: "bezienswaardigheden", label: "Bezienswaardigheden", icon: "🎯", description: "Top attracties en activiteiten" },
+  { id: "restaurants", label: "Restaurants", icon: "🍽️", description: "Eetgelegenheden en culinaire tips" },
   { id: "vliegtickets", label: "Vliegtickets", icon: "✈️", description: "Vluchten en luchtvaartinfo" },
 ];
 

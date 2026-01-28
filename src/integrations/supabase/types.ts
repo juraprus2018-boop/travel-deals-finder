@@ -211,7 +211,12 @@ export type Database = {
         | "wintersport"
         | "vakantieparken"
         | "pretparken"
-      page_type: "main" | "hotels" | "bezienswaardigheden" | "vliegtickets"
+      page_type:
+        | "main"
+        | "hotels"
+        | "bezienswaardigheden"
+        | "vliegtickets"
+        | "restaurants"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -347,7 +352,13 @@ export const Constants = {
         "vakantieparken",
         "pretparken",
       ],
-      page_type: ["main", "hotels", "bezienswaardigheden", "vliegtickets"],
+      page_type: [
+        "main",
+        "hotels",
+        "bezienswaardigheden",
+        "vliegtickets",
+        "restaurants",
+      ],
     },
   },
 } as const
