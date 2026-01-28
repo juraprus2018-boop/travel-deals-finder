@@ -169,6 +169,80 @@ export type Database = {
           },
         ]
       }
+      restaurants: {
+        Row: {
+          address: string | null
+          created_at: string
+          cuisine_types: string[] | null
+          destination_id: string
+          google_maps_url: string | null
+          google_place_id: string | null
+          id: string
+          is_open_now: boolean | null
+          is_visible: boolean | null
+          name: string
+          opening_hours: string[] | null
+          phone: string | null
+          photo_url: string | null
+          price_level: number | null
+          rating: number | null
+          sort_order: number | null
+          updated_at: string
+          user_ratings_total: number | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          cuisine_types?: string[] | null
+          destination_id: string
+          google_maps_url?: string | null
+          google_place_id?: string | null
+          id?: string
+          is_open_now?: boolean | null
+          is_visible?: boolean | null
+          name: string
+          opening_hours?: string[] | null
+          phone?: string | null
+          photo_url?: string | null
+          price_level?: number | null
+          rating?: number | null
+          sort_order?: number | null
+          updated_at?: string
+          user_ratings_total?: number | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          cuisine_types?: string[] | null
+          destination_id?: string
+          google_maps_url?: string | null
+          google_place_id?: string | null
+          id?: string
+          is_open_now?: boolean | null
+          is_visible?: boolean | null
+          name?: string
+          opening_hours?: string[] | null
+          phone?: string | null
+          photo_url?: string | null
+          price_level?: number | null
+          rating?: number | null
+          sort_order?: number | null
+          updated_at?: string
+          user_ratings_total?: number | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurants_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
