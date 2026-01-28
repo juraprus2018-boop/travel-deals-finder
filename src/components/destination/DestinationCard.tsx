@@ -1,12 +1,16 @@
 import { Link } from "react-router-dom";
 import { MapPin, ArrowRight } from "lucide-react";
-import { Destination } from "@/data/types";
+import type { Tables } from "@/integrations/supabase/types";
+
+type Destination = Tables<"destinations">;
 
 interface DestinationCardProps {
   destination: Destination;
 }
 
 const DestinationCard = ({ destination }: DestinationCardProps) => {
+  const highlights = destination.highlights || [];
+  
   return (
     <Link
       to={`/${destination.category}/${destination.slug}`}
@@ -15,7 +19,7 @@ const DestinationCard = ({ destination }: DestinationCardProps) => {
       {/* Image */}
       <div className="relative aspect-[16/10] overflow-hidden">
         <img
-          src={destination.heroImage}
+          src={destination.hero_image || "/placeholder.svg"}
           alt={destination.name}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
@@ -34,20 +38,22 @@ const DestinationCard = ({ destination }: DestinationCardProps) => {
         </h3>
 
         <p className="mb-4 flex-1 text-sm text-muted-foreground line-clamp-2">
-          {destination.shortDescription}
+          {destination.short_description}
         </p>
 
         {/* Highlights */}
-        <div className="mb-4 flex flex-wrap gap-1">
-          {destination.highlights.slice(0, 3).map((highlight) => (
-            <span
-              key={highlight}
-              className="rounded-full bg-secondary px-2 py-0.5 text-xs text-muted-foreground"
-            >
-              {highlight}
-            </span>
-          ))}
-        </div>
+        {highlights.length > 0 && (
+          <div className="mb-4 flex flex-wrap gap-1">
+            {highlights.slice(0, 3).map((highlight) => (
+              <span
+                key={highlight}
+                className="rounded-full bg-secondary px-2 py-0.5 text-xs text-muted-foreground"
+              >
+                {highlight}
+              </span>
+            ))}
+          </div>
+        )}
 
         <div className="flex items-center gap-1 text-sm font-medium text-primary">
           <span>Bekijk bestemming</span>
