@@ -1,8 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { MapPin, ArrowRight, Loader2 } from "lucide-react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import { MapPin, ArrowRight, Loader2, ExternalLink } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { getCountryBySlug, COUNTRIES } from "@/data/countries";
@@ -16,25 +13,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-
-// Fix for default marker icons in Leaflet with Vite
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-});
-
-// Custom marker icon
-const customIcon = new L.Icon({
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
 
 const CountryPage = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
@@ -53,6 +31,9 @@ const CountryPage = () => {
       </Layout>
     );
   }
+
+  // Generate OpenStreetMap URL with markers
+  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${country.coordinates.lng - 5}%2C${country.coordinates.lat - 4}%2C${country.coordinates.lng + 5}%2C${country.coordinates.lat + 4}&layer=mapnik&marker=${country.coordinates.lat}%2C${country.coordinates.lng}`;
 
   return (
     <Layout>
@@ -161,62 +142,85 @@ const CountryPage = () => {
               </div>
             </div>
 
-            {/* Right Column - Map */}
-            <div className="lg:col-span-2">
-              <div className="sticky top-24 overflow-hidden rounded-xl border bg-card">
+            {/* Right Column - Map & Destination Cards */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Map */}
+              <div className="overflow-hidden rounded-xl border bg-card">
                 <div className="border-b bg-secondary/30 px-4 py-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <MapPin className="h-5 w-5 text-primary" />
                       <span className="font-medium">Kaart van {country.name}</span>
                     </div>
-                    <span className="text-xs text-muted-foreground">
-                      Klik op een marker voor meer info
-                    </span>
+                    <a
+                      href={`https://www.openstreetmap.org/#map=${country.zoom}/${country.coordinates.lat}/${country.coordinates.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"
+                    >
+                      Grotere kaart
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
                   </div>
                 </div>
-                <MapContainer
-                  center={[country.coordinates.lat, country.coordinates.lng]}
-                  zoom={country.zoom}
-                  style={{ height: "600px", width: "100%" }}
-                  scrollWheelZoom={true}
-                >
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-                  {destinations.map((destination) => (
-                    <Marker
-                      key={destination.id}
-                      position={[Number(destination.lat), Number(destination.lng)]}
-                      icon={customIcon}
-                    >
-                      <Popup>
-                        <div className="min-w-[200px]">
-                          {destination.hero_image && (
-                            <img
-                              src={destination.hero_image}
-                              alt={destination.name}
-                              className="w-full h-24 object-cover rounded-t-lg mb-2"
-                            />
-                          )}
-                          <h3 className="font-semibold text-base">{destination.name}</h3>
-                          <p className="text-sm text-gray-600 mb-2 line-clamp-2">
-                            {destination.short_description}
-                          </p>
-                          <Link
-                            to={`/${destination.category}/${destination.slug}`}
-                            className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800"
-                          >
-                            Bekijk bestemming
-                            <ArrowRight className="h-3 w-3" />
-                          </Link>
-                        </div>
-                      </Popup>
-                    </Marker>
-                  ))}
-                </MapContainer>
+                <iframe
+                  src={mapUrl}
+                  width="100%"
+                  height="350"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  title={`Kaart van ${country.name}`}
+                  className="w-full"
+                />
               </div>
+
+              {/* Destination Cards Grid */}
+              {destinations.length > 0 && (
+                <div>
+                  <h2 className="font-heading text-xl font-semibold mb-4">
+                    Ontdek {country.name}
+                  </h2>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {destinations.map((destination) => {
+                      const category = getCategoryById(destination.category);
+                      return (
+                        <Link
+                          key={destination.id}
+                          to={`/${destination.category}/${destination.slug}`}
+                          className="group overflow-hidden rounded-xl border bg-card transition-all hover:border-primary hover:shadow-md"
+                        >
+                          {destination.hero_image && (
+                            <div className="relative aspect-[16/9] overflow-hidden">
+                              <img
+                                src={destination.hero_image}
+                                alt={destination.name}
+                                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                              />
+                              <div className="absolute left-2 top-2">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-background/90 px-2 py-0.5 text-xs font-medium backdrop-blur-sm">
+                                  {category?.icon} {category?.name}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          <div className="p-4">
+                            <h3 className="font-heading font-semibold group-hover:text-primary">
+                              {destination.name}
+                            </h3>
+                            <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                              {destination.short_description}
+                            </p>
+                            <div className="mt-3 flex items-center gap-1 text-sm font-medium text-primary">
+                              <span>Bekijk bestemming</span>
+                              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
