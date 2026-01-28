@@ -1,8 +1,8 @@
 import { useParams, Link } from "react-router-dom";
 import { MapPin, ArrowRight, Loader2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
-import { getCountryBySlug, COUNTRIES } from "@/data/countries";
 import { useDestinationsByCountry } from "@/hooks/useDestinationsByCountry";
+import { useCountriesWithDestinations } from "@/hooks/useCountriesWithDestinations";
 import { getCategoryById } from "@/data/categories";
 import CountryMap from "@/components/maps/CountryMap";
 import {
@@ -16,21 +16,37 @@ import {
 
 const CountryPage = () => {
   const { countrySlug } = useParams<{ countrySlug: string }>();
-  const country = getCountryBySlug(countrySlug || "");
-  const { data: destinations = [], isLoading } = useDestinationsByCountry(country?.name || "");
+  const { data: destinations = [], isLoading } = useDestinationsByCountry(countrySlug || "");
+  const { data: allCountries = [] } = useCountriesWithDestinations();
+  
+  // Get country info from first destination or from countries list
+  const countryInfo = destinations[0] 
+    ? { name: destinations[0].country, code: destinations[0].country_code }
+    : allCountries.find(c => c.slug === countrySlug)
+      ? { name: allCountries.find(c => c.slug === countrySlug)!.country, code: allCountries.find(c => c.slug === countrySlug)!.country_code }
+      : null;
 
-  if (!country) {
+  if (!isLoading && !countryInfo && destinations.length === 0) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-16 text-center">
           <h1 className="text-2xl font-bold">Land niet gevonden</h1>
-          <Link to="/" className="mt-4 text-primary hover:underline">
-            Terug naar home
+          <Link to="/landen" className="mt-4 text-primary hover:underline">
+            Bekijk alle landen
           </Link>
         </div>
       </Layout>
     );
   }
+  
+  const countryName = countryInfo?.name || "Laden...";
+  // Calculate center from destinations or use default
+  const mapCenter: [number, number] = destinations.length > 0
+    ? [
+        destinations.reduce((sum, d) => sum + Number(d.lng), 0) / destinations.length,
+        destinations.reduce((sum, d) => sum + Number(d.lat), 0) / destinations.length,
+      ]
+    : [10, 50]; // Default Europe center
 
   return (
     <Layout>
@@ -52,7 +68,7 @@ const CountryPage = () => {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>{country.name}</BreadcrumbPage>
+                <BreadcrumbPage>{countryName}</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -63,7 +79,7 @@ const CountryPage = () => {
             </div>
             <div>
               <h1 className="font-heading text-2xl font-bold md:text-3xl">
-                Bestemmingen in {country.name}
+                Bestemmingen in {countryName}
               </h1>
               <p className="flex items-center gap-1.5 text-muted-foreground">
                 <MapPin className="h-4 w-4" />
@@ -84,9 +100,9 @@ const CountryPage = () => {
           ) : (
             <CountryMap
               destinations={destinations}
-              countryName={country.name}
-              initialCenter={[country.coordinates.lng, country.coordinates.lat]}
-              initialZoom={country.zoom}
+              countryName={countryName}
+              initialCenter={mapCenter}
+              initialZoom={6}
             />
           )}
         </div>
@@ -98,7 +114,7 @@ const CountryPage = () => {
           <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="font-heading text-2xl font-semibold">
-                Alle bestemmingen in {country.name}
+                Alle bestemmingen in {countryName}
               </h2>
               <p className="text-muted-foreground">
                 Klik op een bestemming voor meer informatie
@@ -107,7 +123,8 @@ const CountryPage = () => {
             
             {/* Other countries links */}
             <div className="flex flex-wrap gap-2">
-              {COUNTRIES.filter((c) => c.slug !== countrySlug)
+              {allCountries
+                .filter((c) => c.slug !== countrySlug)
                 .slice(0, 5)
                 .map((c) => (
                   <Link
@@ -115,7 +132,7 @@ const CountryPage = () => {
                     to={`/land/${c.slug}`}
                     className="rounded-full bg-secondary px-3 py-1 text-sm transition-colors hover:bg-primary hover:text-primary-foreground"
                   >
-                    {c.name}
+                    {c.country}
                   </Link>
                 ))}
               <Link
@@ -175,7 +192,7 @@ const CountryPage = () => {
           ) : (
             <div className="rounded-2xl bg-secondary/50 p-12 text-center">
               <p className="text-lg text-muted-foreground">
-                Nog geen bestemmingen in {country.name}.
+                Nog geen bestemmingen in {countryName}.
               </p>
               <Link
                 to="/landen"
