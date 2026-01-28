@@ -8,7 +8,8 @@ import {
   Settings, 
   LogOut,
   Menu,
-  X
+  X,
+  Globe
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +22,7 @@ interface AdminLayoutProps {
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
   { icon: MapPin, label: "Bestemmingen", href: "/admin/destinations" },
+  { icon: Globe, label: "Landen", href: "/admin/landen" },
   { icon: FileText, label: "Content", href: "/admin/content" },
   { icon: Settings, label: "Instellingen", href: "/admin/settings" },
 ];
