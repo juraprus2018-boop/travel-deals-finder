@@ -1,8 +1,8 @@
 import { useParams, Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { getCategoryBySlug } from "@/data/categories";
-import { getDestinationsByCategory } from "@/data/destinations";
+import { useDestinationsByCategory } from "@/hooks/useDestinations";
 import DestinationCard from "@/components/destination/DestinationCard";
 import {
   Breadcrumb,
@@ -16,7 +16,7 @@ import {
 const CategoryPage = () => {
   const { categorySlug } = useParams<{ categorySlug: string }>();
   const category = getCategoryBySlug(categorySlug || "");
-  const destinations = getDestinationsByCategory(categorySlug || "");
+  const { data: destinations = [], isLoading } = useDestinationsByCategory(categorySlug || "");
 
   if (!category) {
     return (
@@ -73,11 +73,15 @@ const CategoryPage = () => {
         <div className="container mx-auto px-4">
           <div className="mb-8">
             <h2 className="font-heading text-2xl font-semibold">
-              {destinations.length} {destinations.length === 1 ? "bestemming" : "bestemmingen"}
+              {isLoading ? "Laden..." : `${destinations.length} ${destinations.length === 1 ? "bestemming" : "bestemmingen"}`}
             </h2>
           </div>
 
-          {destinations.length > 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : destinations.length > 0 ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {destinations.map((destination) => (
                 <DestinationCard key={destination.id} destination={destination} />

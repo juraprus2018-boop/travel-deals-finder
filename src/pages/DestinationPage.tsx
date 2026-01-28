@@ -1,8 +1,8 @@
 import { useParams, Link } from "react-router-dom";
-import { MapPin, Calendar, Thermometer, Plane, Globe, Coins, ArrowRight } from "lucide-react";
+import { MapPin, Calendar, Thermometer, Plane, Globe, Coins, ArrowRight, Loader2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { getDestinationBySlug } from "@/data/destinations";
+import { useDestinationBySlug } from "@/hooks/useDestinations";
 import { getCategoryById } from "@/data/categories";
 import { SUB_PAGES } from "@/data/types";
 import {
@@ -20,10 +20,20 @@ const DestinationPage = () => {
     destinationSlug: string;
   }>();
 
-  const destination = getDestinationBySlug(destinationSlug || "");
+  const { data: destination, isLoading, error } = useDestinationBySlug(destinationSlug || "");
   const category = destination ? getCategoryById(destination.category) : null;
 
-  if (!destination || !category) {
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!destination || !category || error) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-16 text-center">
@@ -36,13 +46,15 @@ const DestinationPage = () => {
     );
   }
 
+  const highlights = destination.highlights || [];
+
   return (
     <Layout>
       {/* Hero Section */}
       <section className="relative">
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${destination.heroImage})` }}
+          style={{ backgroundImage: `url(${destination.hero_image || "/placeholder.svg"})` }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/40 to-foreground/20" />
         </div>
@@ -87,7 +99,7 @@ const DestinationPage = () => {
             </h1>
 
             <p className="text-lg text-white/90 md:text-xl">
-              {destination.shortDescription}
+              {destination.short_description}
             </p>
           </div>
         </div>
@@ -120,21 +132,23 @@ const DestinationPage = () => {
             {/* Left Column - Main Content */}
             <div className="lg:col-span-2 space-y-8">
               {/* Highlights */}
-              <div>
-                <h2 className="mb-4 font-heading text-2xl font-semibold">
-                  Hoogtepunten in {destination.name}
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {destination.highlights.map((highlight) => (
-                    <span
-                      key={highlight}
-                      className="rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary"
-                    >
-                      {highlight}
-                    </span>
-                  ))}
+              {highlights.length > 0 && (
+                <div>
+                  <h2 className="mb-4 font-heading text-2xl font-semibold">
+                    Hoogtepunten in {destination.name}
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {highlights.map((highlight) => (
+                      <span
+                        key={highlight}
+                        className="rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary"
+                      >
+                        {highlight}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Description */}
               <div>
@@ -144,13 +158,15 @@ const DestinationPage = () => {
                 <div className="prose prose-lg max-w-none text-muted-foreground">
                   <p>
                     {destination.name} is een van de meest geliefde bestemmingen in {destination.country}.{" "}
-                    {destination.shortDescription} Of je nu op zoek bent naar cultuur, gastronomie of gewoon een 
+                    {destination.short_description} Of je nu op zoek bent naar cultuur, gastronomie of gewoon een 
                     ontspannen vakantie - {destination.name} heeft het allemaal.
                   </p>
-                  <p>
-                    De beste tijd om {destination.name} te bezoeken is {destination.bestTimeToVisit.toLowerCase()}.
-                    Met gemiddelde temperaturen rond de {destination.averageTemperature} is het weer ideaal voor verkenning.
-                  </p>
+                  {destination.best_time_to_visit && destination.average_temperature && (
+                    <p>
+                      De beste tijd om {destination.name} te bezoeken is {destination.best_time_to_visit.toLowerCase()}.
+                      Met gemiddelde temperaturen rond de {destination.average_temperature} is het weer ideaal voor verkenning.
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -190,51 +206,61 @@ const DestinationPage = () => {
                   Praktische Info
                 </h3>
                 <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <Calendar className="mt-0.5 h-5 w-5 text-primary" />
-                    <div>
-                      <p className="text-sm font-medium">Beste reistijd</p>
-                      <p className="text-sm text-muted-foreground">
-                        {destination.bestTimeToVisit}
-                      </p>
+                  {destination.best_time_to_visit && (
+                    <div className="flex items-start gap-3">
+                      <Calendar className="mt-0.5 h-5 w-5 text-primary" />
+                      <div>
+                        <p className="text-sm font-medium">Beste reistijd</p>
+                        <p className="text-sm text-muted-foreground">
+                          {destination.best_time_to_visit}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Thermometer className="mt-0.5 h-5 w-5 text-primary" />
-                    <div>
-                      <p className="text-sm font-medium">Temperatuur</p>
-                      <p className="text-sm text-muted-foreground">
-                        {destination.averageTemperature}
-                      </p>
+                  )}
+                  {destination.average_temperature && (
+                    <div className="flex items-start gap-3">
+                      <Thermometer className="mt-0.5 h-5 w-5 text-primary" />
+                      <div>
+                        <p className="text-sm font-medium">Temperatuur</p>
+                        <p className="text-sm text-muted-foreground">
+                          {destination.average_temperature}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Globe className="mt-0.5 h-5 w-5 text-primary" />
-                    <div>
-                      <p className="text-sm font-medium">Taal</p>
-                      <p className="text-sm text-muted-foreground">
-                        {destination.language}
-                      </p>
+                  )}
+                  {destination.language && (
+                    <div className="flex items-start gap-3">
+                      <Globe className="mt-0.5 h-5 w-5 text-primary" />
+                      <div>
+                        <p className="text-sm font-medium">Taal</p>
+                        <p className="text-sm text-muted-foreground">
+                          {destination.language}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Coins className="mt-0.5 h-5 w-5 text-primary" />
-                    <div>
-                      <p className="text-sm font-medium">Valuta</p>
-                      <p className="text-sm text-muted-foreground">
-                        {destination.currency}
-                      </p>
+                  )}
+                  {destination.currency && (
+                    <div className="flex items-start gap-3">
+                      <Coins className="mt-0.5 h-5 w-5 text-primary" />
+                      <div>
+                        <p className="text-sm font-medium">Valuta</p>
+                        <p className="text-sm text-muted-foreground">
+                          {destination.currency}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Plane className="mt-0.5 h-5 w-5 text-primary" />
-                    <div>
-                      <p className="text-sm font-medium">Luchthaven</p>
-                      <p className="text-sm text-muted-foreground">
-                        {destination.nearestAirport}
-                      </p>
+                  )}
+                  {destination.nearest_airport && (
+                    <div className="flex items-start gap-3">
+                      <Plane className="mt-0.5 h-5 w-5 text-primary" />
+                      <div>
+                        <p className="text-sm font-medium">Luchthaven</p>
+                        <p className="text-sm text-muted-foreground">
+                          {destination.nearest_airport}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 <div className="mt-6 space-y-2">

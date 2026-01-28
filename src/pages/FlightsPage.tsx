@@ -1,8 +1,8 @@
 import { useParams, Link } from "react-router-dom";
-import { MapPin, Plane, Calendar, ArrowRight, Info } from "lucide-react";
+import { MapPin, Plane, Calendar, ArrowRight, Info, Loader2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { getDestinationBySlug } from "@/data/destinations";
+import { useDestinationBySlug } from "@/hooks/useDestinations";
 import { getCategoryById } from "@/data/categories";
 import {
   Breadcrumb,
@@ -19,8 +19,18 @@ const FlightsPage = () => {
     destinationSlug: string;
   }>();
 
-  const destination = getDestinationBySlug(destinationSlug || "");
+  const { data: destination, isLoading } = useDestinationBySlug(destinationSlug || "");
   const category = destination ? getCategoryById(destination.category) : null;
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
 
   if (!destination || !category) {
     return (
@@ -36,7 +46,8 @@ const FlightsPage = () => {
   }
 
   // Extract airport code from nearestAirport (e.g., "Rome Fiumicino (FCO)" -> "FCO")
-  const airportMatch = destination.nearestAirport.match(/\(([A-Z]{3})\)/);
+  const nearestAirport = destination.nearest_airport || "";
+  const airportMatch = nearestAirport.match(/\(([A-Z]{3})\)/);
   const airportCode = airportMatch ? airportMatch[1] : "";
 
   return (
@@ -81,7 +92,7 @@ const FlightsPage = () => {
               </h1>
               <p className="flex items-center gap-1.5 text-muted-foreground">
                 <MapPin className="h-4 w-4" />
-                {destination.nearestAirport}
+                {nearestAirport || destination.country}
               </p>
             </div>
           </div>
@@ -104,15 +115,17 @@ const FlightsPage = () => {
                 </p>
 
                 <div className="space-y-3">
-                  <div className="flex items-start gap-3 rounded-lg bg-secondary/50 p-3">
-                    <Plane className="mt-0.5 h-5 w-5 text-primary" />
-                    <div>
-                      <p className="text-sm font-medium">Luchthaven</p>
-                      <p className="text-sm text-muted-foreground">
-                        {destination.nearestAirport}
-                      </p>
+                  {nearestAirport && (
+                    <div className="flex items-start gap-3 rounded-lg bg-secondary/50 p-3">
+                      <Plane className="mt-0.5 h-5 w-5 text-primary" />
+                      <div>
+                        <p className="text-sm font-medium">Luchthaven</p>
+                        <p className="text-sm text-muted-foreground">
+                          {nearestAirport}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   <div className="flex items-start gap-3 rounded-lg bg-secondary/50 p-3">
                     <Calendar className="mt-0.5 h-5 w-5 text-primary" />
@@ -208,7 +221,7 @@ const FlightsPage = () => {
                         </div>
                         <div className="rounded-lg border bg-background p-3 text-left">
                           <p className="text-xs text-muted-foreground">Naar</p>
-                          <p className="font-medium">{destination.name} ({airportCode})</p>
+                          <p className="font-medium">{destination.name} ({airportCode || "---"})</p>
                         </div>
                       </div>
                       <div className="grid gap-4 sm:grid-cols-2">

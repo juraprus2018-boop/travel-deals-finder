@@ -1,8 +1,8 @@
 import { useParams, Link } from "react-router-dom";
-import { MapPin, Hotel, Star, Wifi, Car, Coffee } from "lucide-react";
+import { MapPin, Hotel, Star, Wifi, Car, Coffee, Loader2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { getDestinationBySlug } from "@/data/destinations";
+import { useDestinationBySlug } from "@/hooks/useDestinations";
 import { getCategoryById } from "@/data/categories";
 import {
   Breadcrumb,
@@ -19,8 +19,18 @@ const HotelsPage = () => {
     destinationSlug: string;
   }>();
 
-  const destination = getDestinationBySlug(destinationSlug || "");
+  const { data: destination, isLoading } = useDestinationBySlug(destinationSlug || "");
   const category = destination ? getCategoryById(destination.category) : null;
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
 
   if (!destination || !category) {
     return (
@@ -36,7 +46,7 @@ const HotelsPage = () => {
   }
 
   // Stay22 affiliate map URL
-  const stay22MapUrl = `https://www.stay22.com/embed/gm?aid=lovable&lat=${destination.coordinates.lat}&lng=${destination.coordinates.lng}&zoom=14&checkin=&checkout=&guests=2&currency=EUR&lang=nl`;
+  const stay22MapUrl = `https://www.stay22.com/embed/gm?aid=lovable&lat=${destination.lat}&lng=${destination.lng}&zoom=14&checkin=&checkout=&guests=2&currency=EUR&lang=nl`;
 
   return (
     <Layout>

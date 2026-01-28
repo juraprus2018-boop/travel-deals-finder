@@ -1,8 +1,8 @@
 import { useParams, Link } from "react-router-dom";
-import { MapPin, Camera, Clock, Euro, Star, ThumbsUp } from "lucide-react";
+import { MapPin, Camera, Clock, Euro, Star, ThumbsUp, Loader2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { getDestinationBySlug } from "@/data/destinations";
+import { useDestinationBySlug } from "@/hooks/useDestinations";
 import { getCategoryById } from "@/data/categories";
 import {
   Breadcrumb,
@@ -78,9 +78,19 @@ const AttractionsPage = () => {
     destinationSlug: string;
   }>();
 
-  const destination = getDestinationBySlug(destinationSlug || "");
+  const { data: destination, isLoading } = useDestinationBySlug(destinationSlug || "");
   const category = destination ? getCategoryById(destination.category) : null;
   const attractions = destination ? getAttractions(destination.name) : [];
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
 
   if (!destination || !category) {
     return (
