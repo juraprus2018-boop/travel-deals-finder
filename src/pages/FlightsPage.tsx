@@ -1,9 +1,10 @@
 import { useParams, Link } from "react-router-dom";
-import { MapPin, Plane, Calendar, ArrowRight, Info, Loader2 } from "lucide-react";
+import { MapPin, Plane, Calendar, Info, Loader2 } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useDestinationBySlug } from "@/hooks/useDestinations";
 import { getCategoryById } from "@/data/categories";
+import PartnerizeWidget from "@/components/flights/PartnerizeWidget";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -185,68 +186,14 @@ const FlightsPage = () => {
               </div>
             </div>
 
-            {/* Right Column - Flight Search Widget */}
+            {/* Right Column - Partnerize/KLM Widget */}
             <div className="lg:col-span-2">
-              <div className="sticky top-24 overflow-hidden rounded-xl border bg-card">
-                <div className="border-b bg-secondary/30 px-4 py-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Plane className="h-5 w-5 text-primary" />
-                      <span className="font-medium">Vluchten vergelijken</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      Powered by Travelpayouts
-                    </span>
-                  </div>
-                </div>
-
-                {/* Placeholder for flight widget - in production would use Travelpayouts */}
-                <div className="p-8">
-                  <div className="mx-auto max-w-xl text-center">
-                    <div className="mb-6 text-6xl">✈️</div>
-                    <h3 className="mb-2 font-heading text-xl font-semibold">
-                      Zoek vluchten naar {destination.name}
-                    </h3>
-                    <p className="mb-6 text-muted-foreground">
-                      Vergelijk prijzen van alle grote luchtvaartmaatschappijen 
-                      en boekingssites in één overzicht.
-                    </p>
-
-                    {/* Simple search form placeholder */}
-                    <div className="space-y-4 rounded-xl bg-secondary/30 p-6">
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="rounded-lg border bg-background p-3 text-left">
-                          <p className="text-xs text-muted-foreground">Van</p>
-                          <p className="font-medium">Amsterdam (AMS)</p>
-                        </div>
-                        <div className="rounded-lg border bg-background p-3 text-left">
-                          <p className="text-xs text-muted-foreground">Naar</p>
-                          <p className="font-medium">{destination.name} ({airportCode || "---"})</p>
-                        </div>
-                      </div>
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="rounded-lg border bg-background p-3 text-left">
-                          <p className="text-xs text-muted-foreground">Heenreis</p>
-                          <p className="font-medium">Kies datum</p>
-                        </div>
-                        <div className="rounded-lg border bg-background p-3 text-left">
-                          <p className="text-xs text-muted-foreground">Terugreis</p>
-                          <p className="font-medium">Kies datum</p>
-                        </div>
-                      </div>
-                      <Button size="lg" className="w-full gap-2">
-                        <Plane className="h-4 w-4" />
-                        Zoek Vluchten
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    <p className="mt-4 text-xs text-muted-foreground">
-                      * Dit is een demo widget. In productie wordt hier de 
-                      Travelpayouts zoekmachine geïntegreerd.
-                    </p>
-                  </div>
-                </div>
+              <div className="sticky top-24">
+                <PartnerizeWidget
+                  destinationName={destination.name}
+                  airportCode={airportCode}
+                  country={destination.country}
+                />
               </div>
             </div>
           </div>

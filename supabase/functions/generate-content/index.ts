@@ -12,17 +12,17 @@ serve(async (req) => {
 
   try {
     const { destination, pageType } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
 
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    if (!GOOGLE_AI_API_KEY) {
+      throw new Error("GOOGLE_AI_API_KEY is not configured");
     }
 
     if (!destination || !pageType) {
       throw new Error("Missing destination or pageType");
     }
 
-    const systemPrompt = `Je bent een ervaren Nederlandse reisschrijver die SEO-geoptimaliseerde content schrijft voor een affiliate reissite. 
+    let prompt = `Je bent een ervaren Nederlandse reisschrijver die SEO-geoptimaliseerde content schrijft voor een affiliate reissite. 
 Je schrijft altijd in het Nederlands, op een inspirerende maar informatieve toon. 
 Je content moet:
 - Origineel en uniek zijn
@@ -30,15 +30,13 @@ Je content moet:
 - Praktisch bruikbaar voor reizigers
 - Betrouwbaar en accuraat
 
-Antwoord ALTIJD in valid JSON formaat.`;
-
-    let userPrompt = "";
+`;
 
     switch (pageType) {
       case "main":
-        userPrompt = `Genereer content voor de hoofdpagina van ${destination.name} in ${destination.country}.
+        prompt += `Genereer content voor de hoofdpagina van ${destination.name} in ${destination.country}.
 
-Geef JSON terug met:
+Geef JSON terug met (alleen JSON, geen andere tekst):
 {
   "title": "Pakkende titel voor de pagina (max 60 tekens)",
   "metaDescription": "SEO meta description (max 155 tekens)",
@@ -51,9 +49,9 @@ Belangrijk: ${destination.name} is een ${destination.category === 'stedentrips' 
         break;
 
       case "hotels":
-        userPrompt = `Genereer content voor de hotels pagina van ${destination.name} in ${destination.country}.
+        prompt += `Genereer content voor de hotels pagina van ${destination.name} in ${destination.country}.
 
-Geef JSON terug met:
+Geef JSON terug met (alleen JSON, geen andere tekst):
 {
   "title": "Hotels in ${destination.name} | Beste Overnachtingen (max 60 tekens)",
   "metaDescription": "SEO meta description over hotels (max 155 tekens)",
@@ -64,9 +62,9 @@ Geef JSON terug met:
         break;
 
       case "bezienswaardigheden":
-        userPrompt = `Genereer content voor de bezienswaardigheden pagina van ${destination.name} in ${destination.country}.
+        prompt += `Genereer content voor de bezienswaardigheden pagina van ${destination.name} in ${destination.country}.
 
-Geef JSON terug met:
+Geef JSON terug met (alleen JSON, geen andere tekst):
 {
   "title": "Top Bezienswaardigheden ${destination.name} | Must-sees (max 60 tekens)",
   "metaDescription": "SEO meta description over bezienswaardigheden (max 155 tekens)",
@@ -77,10 +75,10 @@ Geef JSON terug met:
         break;
 
       case "vliegtickets":
-        userPrompt = `Genereer content voor de vliegtickets pagina van ${destination.name} in ${destination.country}.
+        prompt += `Genereer content voor de vliegtickets pagina van ${destination.name} in ${destination.country}.
 De dichtstbijzijnde luchthaven is: ${destination.nearestAirport || "onbekend"}.
 
-Geef JSON terug met:
+Geef JSON terug met (alleen JSON, geen andere tekst):
 {
   "title": "Vliegtickets naar ${destination.name} | Goedkope Vluchten (max 60 tekens)",
   "metaDescription": "SEO meta description over vluchten (max 155 tekens)",
@@ -94,42 +92,36 @@ Geef JSON terug met:
         throw new Error(`Unknown page type: ${pageType}`);
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.7,
-      }),
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_AI_API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.7,
+          },
+        }),
+      }
+    );
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Google AI error:", response.status, errorText);
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "Rate limit bereikt. Probeer het over een minuut opnieuw." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Krediet op. Voeg credits toe aan je Lovable workspace." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      throw new Error("AI gateway error");
+      throw new Error("Google AI error");
     }
 
     const data = await response.json();
-    const contentText = data.choices?.[0]?.message?.content;
+    const contentText = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!contentText) {
       throw new Error("No content received from AI");
